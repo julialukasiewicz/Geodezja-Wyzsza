@@ -1,5 +1,10 @@
 import numpy as np
 import math
+from matplotlib import pyplot
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+
 def juliandate(y,m,d,h):
     if (m <= 2):
        y = y -1
@@ -9,19 +14,100 @@ def juliandate(y,m,d,h):
 
 #Greenwich Mean Sidereal Time
 def GMST(y,m,d,h):
-    T = (juliandate(y, m, d, h) - 2451545) / 36525
+    T = (juliandate(y,m,d,h) - 2451545) / 36525
     g = 280.46061837 + 360.98564736629 * (juliandate(y,m,d,0) -2451545) + 0.000387933 * (T ** 2) - (T ** 3) / 38710000
     g = np.remainder(g, 360)
     return g
 
+#zamiana jednostki rektanstenzji na radiany
+a = (21 + 5/60 + 56.82783/3600) * 15
+right_ascension = np.deg2rad(a)
+
+#zamiana deklinacji na radiany
+b = -(17 + 13/60 + 58.3021/3600)
+declination = np.deg2rad(b)
+
 #obliczenie kata godzinnego
-def katgodz(y,d,m,h,lambd,alfa):
-    jd = juliandate(y,m,d,0)
-    g = GMST(jd)
+def hour_angle(y,d,m,h,city_lambd,right_as):
+    g = GMST(y,m,d,0)
     UT1 = h * 1.002737909350795
-    S = UT1 * 15 + lambd + g
-    t = S - alfa * 15
+    S = UT1 * 15 + city_lambd + g
+    t = S - right_as * 15
     return t
+
 #rozwiazanie trojkata paralaktycznego
+def zenith_distance(city_phi,dec,t):
+    #zamiana szerokosci geograficznej miasta na radiany i kata godz
+    city_phi = np.deg2rad(city_phi)
+    t = np.deg2rad(t)
+    cos_z = (math.sin(city_phi) * math.sin(dec)) + (math.cos(city_phi) * math.cos(dec) * math.cos(t))
+    cos_z = np.rad2deg(cos_z)
+    return cos_z
+
+def star_azimuth(dec,t,city_phi):
+    city_phi = np.deg2rad(city_phi)
+    t = np.deg2rad(t)
+    num = (-(math.cos(dec)) * math.sin(t))
+    denum = (math.cos(city_phi) * math.sin(dec)) - (math.sin(city_phi) * math.cos(dec) * math.cos(t))
+    tg_A = np.arctan(num/denum)
+    tg_A = np.rad2deg(tg_A)
+    if (denum < 0):
+        tg_A = tg_A + 180
+    if (num < 0 and denum > 0):
+        tg_A = tg_A + 360
+    return tg_A
+
+#transformacja wspolrzednych
+def transform_coordinates(cos_z,tg_A):
+    cos_z = np.deg2rad(cos_z)
+    tg_A = np.deg2rad(tg_A)
+    x = 1 * math.sin(cos_z) * math.cos(tg_A)
+    y = 1 * math.sin(cos_z) * math.sin(tg_A)
+    z = 1 * math.cos(cos_z)
+    x = np.rad2deg(x)
+    y = np.rad2deg(y)
+    z = np.rad2deg(z)
+    return x,y,z
+
+#glasgow
+tgA_array = []
+cosz_array = []
+city_lambd = 4 + 15.4578/60
+city_phi = 55 + 51.909/60
+for h in range(25):
+    hA = hour_angle(2021,21,11,h,city_lambd,right_ascension)
+    cos_z = zenith_distance(city_phi,declination,hA)
+    tg_A = star_azimuth(declination,hA,city_phi)
+    tgA_array.append(tg_A)
+    cosz_array.append(cos_z)
+
+
+x_array = []
+y_array = []
+z_array = []
+for i in range(25):
+    x,y,z = transform_coordinates(cosz_array[i],tgA_array[i])
+    x_array.append(x)
+    y_array.append(y)
+    z_array.append(z)
+
+u, v = np.mgrid[0:2 * np.pi:30j, 0:np.pi:20j]
+x = np.cos(u) * np.sin(v)
+y = np.sin(u) * np.sin(v)
+z = np.cos(v)
+
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.set_title("Ruch gwiazdy na niebie")
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
+ax.plot_surface(x, y, z, alpha=0.05, facecolors=cm.jet(z/np.amax(z)))
+ax.plot3D(x_array, y_array, z_array, 'grey')
+ax.scatter3D(x_array, y_array, z_array, c='black', cmap='cividis')
+
+plt.show()
+
+#miasta: glasgow, melbourne, singapur
 
 
