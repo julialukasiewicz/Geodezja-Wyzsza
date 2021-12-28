@@ -74,7 +74,7 @@ tgA_array = []
 cosz_array = []
 city_lambd = 4 + 15.4578/60
 city_phi = 55 + 51.909/60
-for h in range(25):
+for h in range(24):
     hA = hour_angle(2021,21,11,h,city_lambd,right_ascension)
     cos_z = zenith_distance(city_phi,declination,hA)
     tg_A = star_azimuth(declination,hA,city_phi)
@@ -85,7 +85,7 @@ for h in range(25):
 x_array = []
 y_array = []
 z_array = []
-for i in range(25):
+for i in range(24):
     x,y,z = transform_coordinates(cosz_array[i],tgA_array[i])
     x_array.append(x)
     y_array.append(y)
