@@ -1,1 +1,87 @@
+import numpy as np
 
+phiA = 50.25
+phiB = 50.00
+phiC = 50.25
+phiD = 50.00
+lamA = 20.75
+lamB = 20.75
+lamC = 21.25
+lamD = 21.25
+
+#obliczenie punktu sredniej szerokosci
+def MidLatitudePoint(pA, pB, pC, pD, lA, lB, lC, lD):
+    midPhi = (pA + pB + pC + pD) / 4
+    midLam = (lA + lB + lC + lD) / 4
+    print(midPhi, midLam)
+
+MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD)
+
+#wyznaczenie punktu srodkowego Vincent
+def Vincent():
+    a = 6378137
+    e2 = 0.00669437999013
+    #1
+    b = a * np.sqrt(1 - e2)
+    f = 1 - (b / a)
+    #2
+    L = np.deg2rad(21.25 - 20.75) #lambD - lambA
+    #3
+    Ua = np.arctan((1 - f) * np.tan(np.deg2rad(phiA)))
+    Ub = np.arctan((1 - f) * np.tan(np.deg2rad(phiD)))
+
+    #4
+    sinSigma = 0
+    cosSigma = 0
+    Sigma = 0
+    sinAlfa = 0
+    cos2Alfa = 0
+    C = 0
+    cos2sig = 0
+    L1 = L
+
+
+    while True:
+        #5
+        sinSigma = np.sqrt((((np.cos(Ub)) * np.sin(L1)) ** 2) + (((np.cos(Ua) * np.sin(Ub))
+                                                                 - (np.sin(Ua) * np.cos(Ub) * np.cos(L1))) ** 2))
+        #6
+        cosSigma = (np.sin(Ua) * np.sin(Ub)) + (np.cos(Ua) * np.cos(Ub) * np.cos(L1))
+        #7
+        Sigma = np.arctan(sinSigma / cosSigma)
+        #8
+        sinAlfa = (np.cos(Ua) * np.cos(Ub) * np.sin(L1)) / sinSigma
+        #9
+        cos2Alfa = 1 - (sinAlfa ** 2)
+        #10
+        cos2sig = cosSigma - ((2 * np.sin(Ua) * np.sin(Ub)) / cos2Alfa)
+        #11
+        C = (f / 16) * cos2Alfa * (4 + f * (4 - 3 * cos2Alfa))
+        #12
+        L2 = L + (1 - C) * f * sinAlfa * (Sigma + C * np.sin(Sigma) * (cos2sig + C * cosSigma * (-1 + 2 * (cos2sig ** 2))))
+        if abs(L2 - L1) < np.deg2rad(0.000001 / 3600):
+            break
+        else:
+            L1 = L2
+
+    #13
+    u2 = (((a ** 2) - (b ** 2)) / (b ** 2)) * cos2Alfa
+    #14
+    A1 = 1 + (u2 / 16384) * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)))
+    #15
+    B1 = (u2 / 1024) * (256 + u2 * (-128 + u2 * (74 - 47 * u2)))
+    #16
+    deltaSigma = B1 * sinSigma * (cos2sig + (B1 * (cosSigma * (-1 + 2 * (cos2sig ** 2)))) / 4 -
+                                  (B1 * cos2sig * (-3 + 4 * (sinSigma ** 2)) * (-3 + 4 * (cos2sig ** 2))) / 6)
+
+
+    #17
+    Sab = (b * A1 * (Sigma - deltaSigma))
+    #18
+    Aab = np.arctan((np.cos(Ub) * np.sin(L1)) / ((np.cos(Ua) * np.sin(Ub)) - (np.sin(Ua) * np.cos(Ub) * np.cos(L1))))
+    #19
+    Aba = np.arctan((np.cos(Ua) * np.sin(L1)) / ((-1 * np.sin(Ua) * np.cos(Ub)) + (np.cos(Ua) * np.sin(Ub) * np.cos(L1)))) + np.pi
+    
+    return Sab, Aab, Aba
+
+print(Vincent())
