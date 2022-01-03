@@ -13,26 +13,28 @@ lamD = 21.25
 def MidLatitudePoint(pA, pB, pC, pD, lA, lB, lC, lD):
     midPhi = (pA + pB + pC + pD) / 4
     midLam = (lA + lB + lC + lD) / 4
-    print(midPhi, midLam)
     return midPhi, midLam
 
 MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD)
 
 #wyznaczenie punktu srodkowego Vincent
-def Vincent(lam1, lam2, phi1, phi2):
+#wyznaczenie punktu srodkowego Vincent
+def Vincent(lam2, phi2, lam1, phi1):
     a = 6378137
     e2 = 0.00669437999013
     #1
     b = a * np.sqrt(1 - e2)
     f = 1 - (b / a)
     #2
-    L = np.deg2rad(lam1 - lam2) #lambD - lambA
+    L = np.deg2rad(lam2 - lam1) #lambD - lambA
     #3
     Ua = np.arctan((1 - f) * np.tan(np.deg2rad(phi1)))
     Ub = np.arctan((1 - f) * np.tan(np.deg2rad(phi2)))
 
+
     #4
     L1 = L
+
 
     while True:
         #5
@@ -67,19 +69,16 @@ def Vincent(lam1, lam2, phi1, phi2):
     deltaSigma = B1 * sinSigma * (cos2sig + (B1 * (cosSigma * (-1 + 2 * (cos2sig ** 2)))) / 4 -
                                   (B1 * cos2sig * (-3 + 4 * (sinSigma ** 2)) * (-3 + 4 * (cos2sig ** 2))) / 6)
 
-
     #17
     Sab = (b * A1 * (Sigma - deltaSigma))
-    #18
-    Aab = np.arctan((np.cos(Ub) * np.sin(L1)) / ((np.cos(Ua) * np.sin(Ub)) - (np.sin(Ua) * np.cos(Ub) * np.cos(L1))))
-    #19
-    Aba = np.arctan((np.cos(Ua) * np.sin(L1)) / ((-1 * np.sin(Ua) * np.cos(Ub)) + (np.cos(Ua) * np.sin(Ub) * np.cos(L1)))) + np.pi
 
     num1 = np.cos(Ub) * np.sin(L1)
-    denum1 = (-1 * np.sin(Ua) * np.cos(Ub)) + (np.cos(Ua) * np.sin(Ub) * np.cos(L1))
+    denum1 = (np.cos(Ua) * np.sin(Ub)) - (np.sin(Ua) * np.cos(Ub) * np.cos(L1))
     if (num1 > 0 and denum1 > 0):
         Aab = np.rad2deg(np.arctan(num1 / denum1))
-    elif (num1 > 0 and denum1 < 0 or num1 < 0 and denum1 < 0):
+    elif (num1 > 0 and denum1 < 0):
+        Aab = np.rad2deg(np.arctan(num1 / denum1) + np.pi)
+    elif (num1 < 0 and denum1 < 0):
         Aab = np.rad2deg(np.arctan(num1 / denum1) + np.pi)
     elif (num1 < 0 and denum1 > 0):
         Aab = np.rad2deg(np.arctan(num1 / denum1) + 2 * np.pi)
@@ -88,25 +87,25 @@ def Vincent(lam1, lam2, phi1, phi2):
     denum2 = (-1 * np.sin(Ua) * np.cos(Ub)) + (np.cos(Ua) * np.sin(Ub) * np.cos(L1))
     if (num2 > 0 and denum2 > 0):
         Aba = np.rad2deg(np.arctan(num2 / denum2) + np.pi)
-    elif (num2 > 0 and denum2 < 0 or num2 < 0 and denum2 < 0):
+    elif (num2 > 0 and denum2 < 0):
+        Aba = np.rad2deg(np.arctan(num2 / denum2) + 2 * np.pi)
+    elif (num2 < 0 and denum2 < 0):
         Aba = np.rad2deg(np.arctan(num2 / denum2) + 2 * np.pi)
     elif (num2 < 0 and denum2 > 0):
         Aba = np.rad2deg(np.arctan(num2 / denum2) + 3 * np.pi)
-
     return Sab, Aab, Aba
-
-print(Vincent(lamD, lamA, phiA, phiD))
 
 def Kivioj():
     a = 6378137
     e2 = 0.00669437999013
-    Sab, Aab, Aba = Vincent(lamD, lamA, phiA, phiD)
+    Sab, Aab, Aba = Vincent(lamD, phiD, lamA, phiA)
     Sab = Sab / 2
     ds = 1111
     n = Sab / ds #ds = 1111
     B = np.deg2rad(phiA)
     L = np.deg2rad(lamA)
     Aab = np.deg2rad(Aab)
+
     for i in range (int(n)):
         M = (a * (1 - e2)) / (np.sqrt((1 - e2 * (np.sin(B) ** 2)) ** 3))
         N = a / (np.sqrt(1 - e2 * (np.sin(B) ** 2)))
@@ -139,5 +138,12 @@ def Kivioj():
     B1 = B + dphiM
     L1 = L + dlamM
     Aab1 = Aab + dAm
+    print()
 
     return np.rad2deg(B1), np.rad2deg(L1), np.rad2deg(Aab1)
+
+
+midPhi, midLam = MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD)
+B, L, Aab = Kivioj()
+
+print(Vincent(L,B,midLam,midPhi))
