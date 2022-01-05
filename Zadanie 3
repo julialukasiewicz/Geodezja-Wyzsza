@@ -147,3 +147,19 @@ midPhi, midLam = MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD
 B, L, Aab = Kivioj()
 
 print(Vincent(L,B,midLam,midPhi))
+
+def area(p1,p2,l1,l2):
+    a = 6378137
+    e2 = 0.00669437999013
+    e = np.sqrt(e2)
+    b = a * np.sqrt(1 - e2)
+    p1 = np.deg2rad(p1)
+    p2 = np.deg2rad(p2)
+    l1 = np.deg2rad(l1)
+    l2 = np.deg2rad(l2)
+    phi1 = (np.sin(p1) / (1 - e2 * (np.sin(p1) ** 2))) + (1/(2 * e) * np.log((1 + e * np.sin(p1)) / (1 - e * np.sin(p1))))
+    phi2 = (np.sin(p2) / (1 - e2 * (np.sin(p2) ** 2))) + (1/(2 * e) * np.log((1 + e * np.sin(p2)) / (1 - e * np.sin(p2))))
+    P = (((b ** 2) * (l1 - l2)) / 2) * (phi2 - phi1)
+    print(P)
+
+area(phiD,phiA,lamD,lamA)
