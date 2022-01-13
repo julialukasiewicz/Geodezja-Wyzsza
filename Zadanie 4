@@ -1,1 +1,31 @@
+import numpy as np
+
+phiM = 50.25
+lambM = 20.75
+
+def GK(phi, lamb, lamb0):
+    a = 6378137
+    e2 = 0.00669437999013
+    a2 = a ** 2
+    b2 = a2 * (1 - e2)
+    ep2 = (a2 - b2) / b2
+    lamb0 = np.deg2rad(lamb0)
+    lamb = np.deg2rad(lamb)
+    phi = np.deg2rad(phi)
+    deltalamb = lamb - lamb0
+    t = np.tan(phi)
+    eta2 = ep2 * (np.cos(phi) ** 2)
+    N = a / (np.sqrt(1 - e2 * (np.sin(phi) ** 2)))
+    a0 = 1 - (e2/4) - ((3 * (e2 ** 2)) / 64) - ((5 * (e2 ** 3)) / 256)
+    a2 = 3/8 * (e2 + ((e2 ** 2) / 4) + ((15 * (e2 ** 3)) / 128))
+    a4 = 15/256 * ((e2 ** 2) + ((3 * (e2 ** 3)) / 4))
+    a6 = (35 * (e2 ** 3)) / 3072
+    sigma = a * (a0 * phi - a2 * np.sin(2 * phi) + a4 * np.sin(4 * phi) - a6 * np.sin(6 * phi))
+    xkg = sigma + ((deltalamb ** 2) / 2) * N * np.sin(phi) * np.cos(phi) * (1 + ((deltalamb ** 2) / 12) * \
+          (np.cos(phi) ** 2) * (5 - t ** 2 + 9 * eta2 + (4 * (eta2 ** 2))) + ((deltalamb ** 4) / 360) * \
+          (np.cos(phi) ** 4) * (61 - (58 * (t ** 2)) + (t ** 4) + (270 * eta2) - (330 * eta2 * (t ** 2))))
+    ykg = deltalamb * N * np.cos(phi) * (1 + ((deltalamb ** 2) / 6) * (np.cos(phi) ** 2) * (1 - t ** 2 + eta2) + \
+                                         ((deltalamb ** 4) / 120) * (np.cos(phi) ** 4) * (5 - 18 * (t **2) + (t ** 4) + \
+                                                                                          14 * eta2 - 58 * eta2 * (t ** 2)))
+    return xkg, ykg
 
