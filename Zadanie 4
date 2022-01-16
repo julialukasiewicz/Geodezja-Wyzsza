@@ -1,7 +1,17 @@
 import numpy as np
 
-phiM = 50.25
-lambM = 20.75
+phiA = 50.25
+phiB = 50.00
+phiC = 50.25
+phiD = 50.00
+phiS = 50.125
+phiM = 50.12527054195198
+lamA = 20.75
+lamB = 20.75
+lamC = 21.25
+lamD = 21.25
+lamS = 21.0
+lamM = 21.00065090208314
 
 def GK(phi, lamb, lamb0):
     a = 6378137
@@ -28,16 +38,14 @@ def GK(phi, lamb, lamb0):
                                          ((deltalamb ** 4) / 120) * (np.cos(phi) ** 4) * (5 - 18 * (t **2) + (t ** 4) + \
                                                                                           14 * eta2 - 58 * eta2 * (t ** 2)))
     return xkg, ykg
-print(GK(phiM,lambM,19))
-xgk1,ygk1 = GK(phiM,lambM,19)
 
-def fromGK(xgk, ygk):
+def fromGK(xgk, ygk, lamb0):
     a = 6378137
     e2 = 0.00669437999013
     a2 = a ** 2
     b2 = a2 * (1 - e2)
     ep2 = (a2 - b2) / b2
-    lamb0 = np.deg2rad(19)
+    lamb0 = np.deg2rad(lamb0)
     a0 = 1 - (e2 / 4) - ((3 * (e2 ** 2)) / 64) - ((5 * (e2 ** 3)) / 256)
     a02 = 3 / 8 * (e2 + ((e2 ** 2) / 4) + ((15 * (e2 ** 3)) / 128))
     a4 = 15 / 256 * ((e2 ** 2) + ((3 * (e2 ** 3)) / 4))
@@ -67,7 +75,13 @@ def fromGK(xgk, ygk):
     lamb1 = np.rad2deg(lamb1)
     return phi1, lamb1
 
-print(fromGK(xgk1, ygk1))
+xgka, ygka = GK(phiA, lamA, 19)
+xgkb, ygkb = GK(phiB, lamB, 19)
+xgkc, ygkc = GK(phiC, lamC, 19)
+xgkd, ygkd = GK(phiD, lamD, 19)
+xgks, ygks = GK(phiS, lamS, 19)
+xgkm, ygkm = GK(phiM, lamM, 19)
+
 
 def u1992(xgk,ygk):
     m0 = 0.9993
@@ -75,24 +89,81 @@ def u1992(xgk,ygk):
     y1992 = m0 * ygk + 500000
     return x1992, y1992
 
-def u2000(phiM,lambM):
+def u2000(phi,lamb):
     m0 = 0.999923
-    xgk, ygk = GK(phiM, lambM, 21)
-    x = m0 * xgk
-    y = m0 * ygk + 7 * 1000000 + 500000
-    return x, y
+    xgk, ygk = GK(phi, lamb, 21)
+    x2000 = m0 * xgk
+    y2000 = m0 * ygk + 7 * 1000000 + 500000
+    return x2000, y2000
 
-def u1992toGK():
-    x,y = u1992(xgk1,ygk1)
+def u1992toGK(xgk, ygk):
+    x,y = u1992(xgk,ygk)
     m0 = 0.9993
     xgk = (x + 5300000) / m0
     ygk = (y - 500000) / m0
     return xgk, ygk
 
-def u2000toGK():
-    x,y = u2000(phiM,lambM)
+def u2000toGK(phi, lamb):
+    x,y = u2000(phi,lamb)
     m0 = 0.999923
     xgk = x / m0
     ygk = (y - (7 * 1000000) - 500000) / m0
     return xgk, ygk
+
+def scale1992(xgk, ygk):
+    m0 = 0.9993
+    x, y = u1992toGK(xgk, ygk)
+    phi, lamb = fromGK(x, y, 19)
+    a = 6378137
+    e2 = 0.00669437999013
+    M = (a * (1 - e2)) / (np.sqrt((1 - e2 * (np.sin(phi) ** 2)) ** 3))
+    N = a / (np.sqrt(1 - e2 * (np.sin(phi) ** 2)))
+    R = np.sqrt(M * N)
+    m = 1 + (y ** 2) / (2 * R ** 2) + (y ** 2)/(24 * R ** 4)
+    m1992 = m0 * m
+    kappa = (1 - m1992) * 1000
+    return m1992, kappa
+
+def scale2000(phi, lamb):
+    m0 = 0.999923
+    a = 6378137
+    e2 = 0.00669437999013
+    x, y = u2000toGK(phi,lamb)
+    phi, lamb = fromGK(x, y, 21)
+    M = (a * (1 - e2)) / (np.sqrt((1 - e2 * (np.sin(phi) ** 2)) ** 3))
+    N = a / (np.sqrt(1 - e2 * (np.sin(phi) ** 2)))
+    R = np.sqrt(M * N)
+    m = 1 + (y ** 2) / (2 * R ** 2) + (y ** 2) / (24 * R ** 4)
+    m2000 = m0 * m
+    kappa = (1 - m2000) * 1000
+    return m2000, kappa
+
+def GKscale(xgk, ygk):
+    phi, lamb = fromGK(xgk, ygk, 19)
+    a = 6378137
+    e2 = 0.00669437999013
+    M = (a * (1 - e2)) / (np.sqrt((1 - e2 * (np.sin(phi) ** 2)) ** 3))
+    N = a / (np.sqrt(1 - e2 * (np.sin(phi) ** 2)))
+    R = np.sqrt(M * N)
+    m = 1 + (ygk ** 2) / (2 * R ** 2) + (ygk ** 2) / (24 * R ** 4)
+    kappa = (1 - m) * 1000
+    return m, kappa
+
+def areascale(m):
+    m = m ** 2
+    kappa = (1 - m) * 1000
+    return m, kappa
+    
+print("A:", "GK:", GK(phiA, lamA, 19), "1992:", u1992(xgka, ygka), "2000:", u2000(phiA, lamA))
+print("B:", "GK:", GK(phiB, lamB, 19), "1992:", u1992(xgkb, ygkb), "2000:", u2000(phiB, lamB))
+print("C:", "GK:", GK(phiC, lamC, 19), "1992:", u1992(xgkc, ygkc), "2000:", u2000(phiC, lamC))
+print("D:", "GK:", GK(phiD, lamD, 19), "1992:", u1992(xgkd, ygkd), "2000:", u2000(phiD, lamD))
+print("S:", "GK:", GK(phiS, lamS, 19), "1992:", u1992(xgks, ygks), "2000:", u2000(phiS, lamS))
+print("M:", "GK:", GK(phiM, lamM, 19), "1992:", u1992(xgkm, ygkm), "2000:", u2000(phiM, lamM))
+print("A:", "mGK & kGK:", GKscale(xgka,ygka), "m1992 & k1992:", scale1992(xgka,ygka), "m2000 & k2000:", scale2000(phiA, lamA))
+print("B:", "mGK & kGK:", GKscale(xgkb,ygkb), "m1992 & k1992:", scale1992(xgkb,ygkb), "m2000 & k2000:", scale2000(phiB, lamB))
+print("C:", "mGK & kGK:", GKscale(xgkc,ygkc), "m1992 & k1992:", scale1992(xgkc,ygkc), "m2000 & k2000:", scale2000(phiC, lamC))
+print("D:", "mGK & kGK:", GKscale(xgkd,ygkd), "m1992 & k1992:", scale1992(xgkd,ygkd), "m2000 & k2000:", scale2000(phiD, lamD))
+print("S:", "mGK & kGK:", GKscale(xgks,ygks), "m1992 & k1992:", scale1992(xgks,ygks), "m2000 & k2000:", scale2000(phiS, lamS))
+print("M:", "mGK & kGK:", GKscale(xgkm,ygkm), "m1992 & k1992:", scale1992(xgkm,ygkm), "m2000 & k2000:", scale2000(phiM, lamM))
 
