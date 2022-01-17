@@ -19,12 +19,12 @@ def GMST(y,m,d,h):
     g = np.remainder(g, 360)
     return g
 
-#zamiana jednostki rektastenzji na radiany
-a = (21 + 5/60 + 56.82783/3600) * 15
+#zamiana jednostki rektastensji na radiany
+a = 21.09911884
 right_ascension = np.deg2rad(a)
 
 #zamiana deklinacji na radiany
-b = -(17 + 13/60 + 58.3021/3600)
+b = -17.232862
 declination = np.deg2rad(b)
 
 #obliczenie kata godzinnego
@@ -32,7 +32,7 @@ def hour_angle(y,d,m,h,city_lambd,right_as):
     g = GMST(y,m,d,0)
     UT1 = h * 1.002737909350795
     S = UT1 * 15 + city_lambd + g
-    t = S - right_as * 15
+    t = S - np.rad2deg(right_as) * 15
     return t
 
 #rozwiazanie trojkata paralaktycznego
@@ -51,9 +51,13 @@ def star_azimuth(dec,t,city_phi):
     denum = (math.cos(city_phi) * math.sin(dec)) - (math.sin(city_phi) * math.cos(dec) * math.cos(t))
     tg_A = np.arctan(num/denum)
     tg_A = np.rad2deg(tg_A)
-    if (denum < 0):
+    if num > 0 and denum > 0:
+        tg_A = tg_A
+    elif num > 0 and denum < 0:
         tg_A = tg_A + 180
-    if (num < 0 and denum > 0):
+    elif num < 0 and denum < 0:
+        tg_A = tg_A + 180
+    elif num < 0 and denum > 0:
         tg_A = tg_A + 360
     return tg_A
 
@@ -106,7 +110,7 @@ for i in range(24):
     z_array.append(z)
 
 
-h_glasgow = height(city_phi, declination, hA)
+
 plt.plot(hours, hglas_array)
 plt.xlabel('Czas')
 plt.ylabel('Wysokość gwiazdy nad horyzontem')
@@ -225,8 +229,5 @@ ax = Axes3D(fig)
 ax.scatter(x_array3,y_array3,z_array3)
 ax.plot_surface(xs, ys, zs, alpha=0.2)
 plt.show()
-
-
-
 
 
