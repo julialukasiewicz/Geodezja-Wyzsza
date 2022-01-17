@@ -19,7 +19,7 @@ def GMST(y,m,d,h):
     g = np.remainder(g, 360)
     return g
 
-#zamiana jednostki rektanstenzji na radiany
+#zamiana jednostki rektastenzji na radiany
 a = (21 + 5/60 + 56.82783/3600) * 15
 right_ascension = np.deg2rad(a)
 
