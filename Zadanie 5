@@ -1,1 +1,64 @@
+import math as m
+import numpy as np
 
+#dane z poprzedniego zadania
+PhiA, LamA = m.radians(50.25), m.radians(20.75)
+PhiB, LamB = m.radians(50.00), m.radians(20.75)
+PhiC, LamC = m.radians(50.25), m.radians(21.25)
+PhiD, LamD = m.radians(50.00), m.radians(21.25)
+PhiS, LamS = m.radians(50.125), m.radians(21.0)
+PhiM, LamM = m.radians(50.12527044824481), m.radians(21.000651088258433)
+
+#dane dla grs80
+ag = 6378137
+e2g = 0.00669437999013
+#dane dla elipsoidy krasowskiego
+ak = 6378245
+e2k = 0.0066934215520398155
+kx0 = -33.4297
+ky0 = 146.5746
+kz0 = 76.2865
+kH = 0.8407728 * 0.000001
+kex = (-0.35867 / 3600)
+key = (-0.05283 / 3600)
+kez = (0.84354 / 3600)
+
+
+def geo_to_xyz(phi, lamb, H, a, e2):
+    N = a / m.sqrt(1 - e2 * (m.sin(phi) ** 2))
+    x = (N + H) * m.cos(phi) * m.cos(lamb)
+    y = (N + H) * m.cos(phi) * m.sin(lamb)
+    z = (N * (1 - e2) + H) * m.sin(phi)
+    return x, y, z
+
+
+
+def hirvonen(x, y, z, a, e2):
+    r = m.sqrt((x ** 2) + (y ** 2))
+    fi1 = m.atan((z/r) * ((1-e2) ** -1))
+    n = a / m.sqrt(1 - e2 * m.sin(fi1) ** 2)
+    h = (r / m.cos(fi1)) - n
+    fi2 = m.atan((z / r) * (1 - e2 * (n / (n + h))) ** -1)
+    epsilon = m.radians(0.00005/3600)
+
+    while abs(fi2-fi1) > epsilon:
+        fi1 = fi2
+        n = a / m.sqrt(1 - e2 * m.sin(fi1) ** 2)
+        h = (r / m.cos(fi1)) - n
+        fi2 = m.atan((z / r) * (1 - e2 * (n / (n + h))) ** -1)
+
+    n = a / m.sqrt(1 - e2 * m.sin(fi2) ** 2)
+    h = (r / m.cos(fi2)) - n
+    lam = m.atan(y/x)
+
+    fi_d = m.degrees(fi2)
+    lam_d = m.degrees(lam)
+    return fi_d, lam_d), h
+
+
+def transformacja(xp, yp, zp, x0, y0, z0, ex, ey, ez, H):
+    m_wektorow = np.array([[x0], [y0], [z0]])
+    m_wspolrzednych = np.array([[xp], [yp], [zp]])
+    m_obrotu = np.array([[H, m.radians(ez), m.radians(-ey)], [m.radians(-ez), H, m.radians(ex)], [m.radians(ey), m.radians(-ex), H]])
+    m_koncowa = m_wspolrzednych + m_obrotu.dot(m_wspolrzednych) + m_wektorow
+    return np.transpose(m_koncowa)
