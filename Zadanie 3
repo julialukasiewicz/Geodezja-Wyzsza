@@ -155,11 +155,26 @@ def area(p1,p2,l1,l2):
     P = (((b ** 2) * (l1 - l2)) / 2) * (phi2 - phi1)
     print("Pole czworokąta:", P)
 
+def dectodeg(x):
+    degrees = int(x)
+    minutes = int((x - degrees) * 60)
+    seconds = (x - degrees - minutes / 60) * 3600
+    seconds = round(seconds, 5)
+    return degrees,minutes,seconds
+
 print("Punkt średniej szerokości:", MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD))
 print("Azymuty AD:", Vincent(lamD, phiD,lamA,phiA))
 print("Współrzedne punktu środkowego:", B, L)
 print("Odległość między punktem śr. i śr. szerokości i azymuty:", Vincent(L, B, midLam, midPhi))
 area(phiD,phiA,lamD,lamA)
+
+
+print("Zamiana na stopnie:", dectodeg(127.68147015704359))
+print(dectodeg(308.0651945576038))
+print(dectodeg(50.12527054195198))
+print(dectodeg(21.00065090208314))
+print(dectodeg(57.11621259889227))
+print(dectodeg(237.11671213128352))
 
 
 
