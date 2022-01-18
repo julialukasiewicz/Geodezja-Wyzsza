@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 phiA = 50.25
 phiB = 50.00
@@ -17,8 +18,6 @@ def MidLatitudePoint(pA, pB, pC, pD, lA, lB, lC, lD):
 
 MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD)
 
-#wyznaczenie punktu srodkowego Vincent
-#wyznaczenie punktu srodkowego Vincent
 def Vincent(lam2, phi2, lam1, phi1):
     a = 6378137
     e2 = 0.00669437999013
@@ -30,11 +29,8 @@ def Vincent(lam2, phi2, lam1, phi1):
     #3
     Ua = np.arctan((1 - f) * np.tan(np.deg2rad(phi1)))
     Ub = np.arctan((1 - f) * np.tan(np.deg2rad(phi2)))
-
-
     #4
     L1 = L
-
 
     while True:
         #5
@@ -142,11 +138,8 @@ def Kivioj():
 
     return np.rad2deg(B1), np.rad2deg(L1), np.rad2deg(Aab1)
 
-
 midPhi, midLam = MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD)
 B, L, Aab = Kivioj()
-
-print(Vincent(L,B,midLam,midPhi))
 
 def area(p1,p2,l1,l2):
     a = 6378137
@@ -160,6 +153,13 @@ def area(p1,p2,l1,l2):
     phi1 = (np.sin(p1) / (1 - e2 * (np.sin(p1) ** 2))) + (1/(2 * e) * np.log((1 + e * np.sin(p1)) / (1 - e * np.sin(p1))))
     phi2 = (np.sin(p2) / (1 - e2 * (np.sin(p2) ** 2))) + (1/(2 * e) * np.log((1 + e * np.sin(p2)) / (1 - e * np.sin(p2))))
     P = (((b ** 2) * (l1 - l2)) / 2) * (phi2 - phi1)
-    print(P)
+    print("Pole czworokąta:", P)
 
+print("Punkt średniej szerokości:", MidLatitudePoint(phiA, phiB, phiC, phiD, lamA, lamB, lamC, lamD))
+print("Azymuty AD:", Vincent(lamD, phiD,lamA,phiA))
+print("Współrzedne punktu środkowego:", B, L)
+print("Odległość między punktem śr. i śr. szerokości i azymuty:", Vincent(L, B, midLam, midPhi))
 area(phiD,phiA,lamD,lamA)
+
+
+
