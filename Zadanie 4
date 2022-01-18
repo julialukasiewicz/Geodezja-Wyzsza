@@ -82,6 +82,17 @@ xgkd, ygkd = GK(phiD, lamD, 19)
 xgks, ygks = GK(phiS, lamS, 19)
 xgkm, ygkm = GK(phiM, lamM, 19)
 
+def zone_number(lamb):
+    zn = 0
+    if np.deg2rad(13.5) <= np.deg2rad(lamb) <= np.deg2rad(16.5):
+        zn = 5
+    if np.deg2rad(16.5) <= np.deg2rad(lamb) <= np.deg2rad(19.5):
+        zn = 6
+    if np.deg2rad(19.5) <= np.deg2rad(lamb) <= np.deg2rad(22.5):
+        zn = 7
+    if np.deg2rad(22.5) <= np.deg2rad(lamb) <= np.deg2rad(25.5):
+        zn = 8
+    return zn
 
 def u1992(xgk,ygk):
     m0 = 0.9993
@@ -92,8 +103,9 @@ def u1992(xgk,ygk):
 def u2000(phi,lamb):
     m0 = 0.999923
     xgk, ygk = GK(phi, lamb, 21)
+    zn = zone_number(21)
     x2000 = m0 * xgk
-    y2000 = m0 * ygk + 7 * 1000000 + 500000
+    y2000 = m0 * ygk + zn * 1000000 + 500000
     return x2000, y2000
 
 def u1992toGK(xgk, ygk):
@@ -106,8 +118,9 @@ def u1992toGK(xgk, ygk):
 def u2000toGK(phi, lamb):
     x,y = u2000(phi,lamb)
     m0 = 0.999923
+    zn = zone_number(21)
     xgk = x / m0
-    ygk = (y - (7 * 1000000) - 500000) / m0
+    ygk = (y - (zn * 1000000) - 500000) / m0
     return xgk, ygk
 
 def scale1992(xgk, ygk):
@@ -121,7 +134,7 @@ def scale1992(xgk, ygk):
     R = np.sqrt(M * N)
     m = 1 + (y ** 2) / (2 * R ** 2) + (y ** 2)/(24 * R ** 4)
     m1992 = m0 * m
-    kappa = (1 - m1992) * 1000
+    kappa = (m1992 - 1) * 1000
     return m1992, kappa
 
 def scale2000(phi, lamb):
@@ -135,7 +148,7 @@ def scale2000(phi, lamb):
     R = np.sqrt(M * N)
     m = 1 + (y ** 2) / (2 * R ** 2) + (y ** 2) / (24 * R ** 4)
     m2000 = m0 * m
-    kappa = (1 - m2000) * 1000
+    kappa = (m2000 - 1) * 1000
     return m2000, kappa
 
 def GKscale(xgk, ygk):
@@ -146,14 +159,25 @@ def GKscale(xgk, ygk):
     N = a / (np.sqrt(1 - e2 * (np.sin(phi) ** 2)))
     R = np.sqrt(M * N)
     m = 1 + (ygk ** 2) / (2 * R ** 2) + (ygk ** 2) / (24 * R ** 4)
-    kappa = (1 - m) * 1000
+    kappa = (m - 1) * 1000
     return m, kappa
 
-def areascale(m):
+def doublescaleha(m):
     m = m ** 2
-    kappa = (1 - m) * 1000
+    kappa = (m - 1) * 10000
     return m, kappa
-    
+
+xgk = [5570120.59683, 5542315.02551, 5543273.89200, 5571077.96021, 5570120.59683] #abdca
+ygk = [124812.22774, 125464.20085, 161308.28341, 160469.90666, 124812.22774]
+x1992 = [266221.51256, 238435.40499, 239393.60028, 267178.20564, 266221.51256]
+y1992 = [624724.85918, 625376.37591, 661195.36761, 660357.57773, 624724.85918]
+x2000 = [5568256.03001, 5540450.35001, 5540450.35001, 5568256.03001, 5568256.03001]
+y2000 = [7482170.56246, 7482077.45155,  7517922.54845,7517829.43754, 7482170.56246]
+
+pgk = Polygon(zip(xgk, ygk))
+p1992 = Polygon(zip(x1992, y1992))
+p2000 = Polygon(zip(x2000, y2000))
+
 print("A:", "GK:", GK(phiA, lamA, 19), "1992:", u1992(xgka, ygka), "2000:", u2000(phiA, lamA))
 print("B:", "GK:", GK(phiB, lamB, 19), "1992:", u1992(xgkb, ygkb), "2000:", u2000(phiB, lamB))
 print("C:", "GK:", GK(phiC, lamC, 19), "1992:", u1992(xgkc, ygkc), "2000:", u2000(phiC, lamC))
@@ -166,4 +190,10 @@ print("C:", "mGK & kGK:", GKscale(xgkc,ygkc), "m1992 & k1992:", scale1992(xgkc,y
 print("D:", "mGK & kGK:", GKscale(xgkd,ygkd), "m1992 & k1992:", scale1992(xgkd,ygkd), "m2000 & k2000:", scale2000(phiD, lamD))
 print("S:", "mGK & kGK:", GKscale(xgks,ygks), "m1992 & k1992:", scale1992(xgks,ygks), "m2000 & k2000:", scale2000(phiS, lamS))
 print("M:", "mGK & kGK:", GKscale(xgkm,ygkm), "m1992 & k1992:", scale1992(xgkm,ygkm), "m2000 & k2000:", scale2000(phiM, lamM))
-
+print("A:", "mGK & kGK:", doublescaleha(1.0001927579507983), "m1992 & k1992:", doublescaleha(0.9994926230202327), "m2000 & k2000:", doublescaleha(0.9999269337500253))
+print("B:", "mGK & kGK:", doublescaleha(1.0001945981454208), "m1992 & k1992:", doublescaleha(0.999494461926719), "m2000 & k2000:", doublescaleha(0.999926971293782))
+print("C:", "mGK & kGK:", doublescaleha(1.000318628948981), "m1992 & k1992:", doublescaleha(0.9996184059087166), "m2000 & k2000:", doublescaleha(0.9999269337500253))
+print("D:", "mGK & kGK:", doublescaleha(1.0003216713537757), "m1992 & k1992:", doublescaleha(0.999621446183828), "m2000 & k2000:", doublescaleha(0.999926971293782))
+print("S:", "mGK & kGK:", doublescaleha(1.0002530136645005), "m1992 & k1992:", doublescaleha(0.9995528365549353), "m2000 & k2000:", doublescaleha(0.999923))
+print("M:", "mGK & kGK:", doublescaleha(1.000253175765519), "m1992 & k1992:", doublescaleha(0.9995529985424831), "m2000 & k2000:", doublescaleha(0.9999230000267982))
+print("GK:", pgk.area, "1992:", p1992.area, "2000:", p2000.area)
