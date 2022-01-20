@@ -85,13 +85,13 @@ xgkm, ygkm = GK(phiM, lamM, 19)
 
 def zone_number(lamb):
     zn = 0
-    if np.deg2rad(13.5) <= np.deg2rad(lamb) <= np.deg2rad(16.5):
+    if 13.5 <= lamb < 16.5:
         zn = 5
-    if np.deg2rad(16.5) <= np.deg2rad(lamb) <= np.deg2rad(19.5):
+    if 16.5 <= lamb < 19.5:
         zn = 6
-    if np.deg2rad(19.5) <= np.deg2rad(lamb) <= np.deg2rad(22.5):
+    if 19.5 <= lamb < 22.5:
         zn = 7
-    if np.deg2rad(22.5) <= np.deg2rad(lamb) <= np.deg2rad(25.5):
+    if 22.5 <= lamb < 25.5:
         zn = 8
     return zn
 
