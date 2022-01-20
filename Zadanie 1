@@ -1,5 +1,4 @@
 import numpy as np
-from matplotlib import pyplot
 import matplotlib.pyplot as plt
 
 a = 6378137
@@ -51,16 +50,17 @@ plt.plot(flightlamb, flightphi)
 plt.show()
 
 def azimuth(n, e):
-    Az = np.arctan(e/n)
-    Az = np.rad2deg(Az)
-    if e > 0 and n > 0:
-        Az = Az
-    elif e > 0 and n < 0:
-        Az = Az + 180
-    elif e < 0 and n < 0:
-        Az = Az + 180
-    elif e < 0 and n > 0:
-        Az = Az + 360
+    for i in range (len(n)):
+        Az = np.arctan(e/n)
+        Az = np.rad2deg(Az)
+        if e[i] > 0 and n[i] > 0:
+            Az = Az
+        elif e[i] > 0 and n[i] < 0:
+            Az = Az + 180
+        elif e[i] < 0 and n[i] < 0:
+            Az = Az + 180
+        elif e[i] < 0 and n[i] > 0:
+            Az = Az + 360
     return Az
 
 def slant_distance(n, e, u):
@@ -68,20 +68,41 @@ def slant_distance(n, e, u):
     return s
 
 def zenith_distance(n, e, u):
-    zen = np.arccos(u / (n ** 2 + e ** 2 + u ** 2))
+    zen = np.arccos(u / np.sqrt(n ** 2 + e ** 2 + u ** 2))
     zen = np.rad2deg(zen)
     return zen
 n, e, u = gtoneu(ap_phi, flightphi, ap_lamb, flightlamb, ap_h, flighth)
-print(slant_distance(n,e,u))
 
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(111, projection='3d')
-ax1.scatter(flightlamb, flightphi, flighth, color="r", s=50)
-plt.tight_layout()
+zen = zenith_distance(n, e, u)
+zen2 = zen[zen > 90]
+overhorizon = zen2[0]
+index = np.where(zen == overhorizon)
+nz = n[index]
+ez = e[index]
+uz = u[index]
+print(nz,ez,uz)
+
+fig = plt.figure()
+ax1 = fig.add_subplot(111, projection='3d')
+ax1.scatter(flightlamb, flightphi, flighth, color="b", s=40)
 plt.show()
 
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(111, projection='3d')
-ax1.scatter(e, n, u, color='r', s=50)
-plt.tight_layout()
+fig = plt.figure()
+ax1 = fig.add_subplot(111, projection='3d')
+ax1.scatter(218101.25473561,-310604.53269594, -328.94546456, color='r', s=90)
+ax1.text(218101.25473561,-310604.53269594, -328.94546456, "Samolot znika za horyzontem")
+ax1.scatter(e, n, u, color='b', s=40)
 plt.show()
+
+def dectodeg(x):
+    degrees = int(x)
+    minutes = int((x - degrees) * 60)
+    seconds = (x - degrees - minutes / 60) * 3600
+    seconds = round(seconds, 5)
+    return degrees,minutes,seconds
+
+print(dectodeg(zen[-1]))
+az = azimuth(n,e)
+sd = slant_distance(n,e,u)
+print(dectodeg(az[-1]))
+print(sd[-1])
